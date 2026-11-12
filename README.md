@@ -153,4 +153,4 @@ zhidun is an Android app **hardening** tool, for protecting the code assets of *
 
 ## License
 
-Choose a license before publishing (e.g. MIT or Apache-2.0) and add a `LICENSE` file. Bundled third-party components keep their own licenses.
+MIT — see [LICENSE](./LICENSE). Bundled and dependent third-party components keep their own licenses; see [THIRD-PARTY-NOTICES.md](./THIRD-PARTY-NOTICES.md).

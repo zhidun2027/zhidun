@@ -153,4 +153,4 @@ zhidun は Android アプリの**保護（ハードニング）**ツールであ
 
 ## ライセンス
 
-公開前にライセンス（MIT や Apache-2.0 など）を選び、`LICENSE` ファイルを追加してください。同梱される第三者コンポーネントはそれぞれのライセンスに従います。
+MIT — [LICENSE](./LICENSE) を参照。同梱・依存する第三者コンポーネントはそれぞれのライセンスに従います（[THIRD-PARTY-NOTICES.md](./THIRD-PARTY-NOTICES.md)）。

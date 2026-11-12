@@ -74,3 +74,8 @@ tasks.register('fatJar', Jar) {
     }
     exclude 'META-INF/*.SF', 'META-INF/*.DSA', 'META-INF/*.RSA', 'module-info.class'
 }
+
+// Never bundle the (likely copyrighted) startup audio into any published jar.
+tasks.named('processResources') {
+    exclude 'com/frame/audio/music.mp3'
+}
