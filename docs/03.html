@@ -1,0 +1,125 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>config.dll Shell Resources · zhidun 3.3.7 — Technical Manual</title>
+<link rel="stylesheet" href="assets/site.css">
+</head>
+<body>
+<button id="navtoggle" aria-label="Menu">☰ Menu</button>
+<div class="layout">
+  <aside class="sidebar">
+    <a class="brand" href="index.html">
+      <span class="logo">🛡️</span>
+      <span><b>zhidun 3.3.7</b><small>Reverse-engineering manual</small></span>
+    </a>
+    <nav class="nav">
+<a href="index.html"><span class="n">·</span><span class="t">Overview</span></a>
+<a href="01.html"><span class="n">01</span><span class="t">Background & Overview</span></a>
+<a href="02.html"><span class="n">02</span><span class="t">PC Hardening Tool</span></a>
+<a href="03.html" class="active"><span class="n">03</span><span class="t">config.dll Shell Resources</span></a>
+<a href="04.html"><span class="n">04</span><span class="t">Runtime Shell</span></a>
+<a href="05.html"><span class="n">05</span><span class="t">Cipher Specification</span></a>
+<a href="06.html"><span class="n">06</span><span class="t">Version Fingerprint</span></a>
+<a href="07.html"><span class="n">07</span><span class="t">Conclusions & Assessment</span></a>
+<a href="08.html"><span class="n">08</span><span class="t">Appendix</span></a>
+    </nav>
+    <div class="side-foot">CFR · dex2jar · Ghidra decompilation<br>every finding cites file:line</div>
+  </aside>
+  <main class="content">
+    <div class="inner">
+<h1>Part 3 · config.dll Shell Resource Pack</h1>
+<h2>3.1 Encryption &amp; Decryption</h2>
+<ul>
+<li>Generator: <code>ConfigPacker.java</code>, a default-package class in the same jar (author build path <code>D:\dev\project\2026\hardening\Config</code>).</li>
+<li>Encryption: <code>b.a(config.zip, &quot;2025_09&quot;)</code> → <code>config.dll</code> (ciphertext header <code>5c 73 2d 2d…</code>).</li>
+<li><strong>Decryption</strong>: <code>b(&quot;2025_09&quot;, config.dll)</code> (<code>+5 ^3 ^key</code>) → a valid ZIP (<strong>1065 entries</strong>). The output is in <code>config.dll.decrypted.zip</code>.</li>
+</ul>
+<h2>3.2 Structure</h2>
+<table>
+<thead>
+<tr>
+<th>Entry</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>AndroidManifest.xml</code></td>
+<td>Shell manifest: <code>package=com.shell</code>, Application=<code>com.youyou.shell.StubApp</code></td>
+</tr>
+<tr>
+<td><code>init</code></td>
+<td>Shell loader dex (contains <code>com.youyou.shell.*</code>)</td>
+</tr>
+<tr>
+<td><code>lib/{arm64-v8a,armeabi-v7a,mips64,x86_64}/libjiaguo.so</code></td>
+<td>native hardening engine (jiaguo = hardening), already stripped</td>
+</tr>
+<tr>
+<td><code>smali/com/youyou/…</code></td>
+<td>The shell's own code (merged into the target APK)</td>
+</tr>
+<tr>
+<td><code>smali/android/support/…</code></td>
+<td>The support libraries it depends on (the majority)</td>
+</tr>
+</tbody>
+</table>
+<h2>3.3 Shell Class List (<code>com.youyou.shell</code>)</h2>
+<table>
+<thead>
+<tr>
+<th>Class</th>
+<th>Role</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>StubApp</code></td>
+<td>The shell's Application entry point; runs before the real program</td>
+</tr>
+<tr>
+<td><code>AppLoad</code></td>
+<td>native bridge: <code>loadLibrary(&quot;jiaguo&quot;)</code> + native methods</td>
+</tr>
+<tr>
+<td><code>shell.utils.SysCheck</code></td>
+<td>System detection (root/hook/debugging/VPN/app cloning)</td>
+</tr>
+<tr>
+<td><code>shell.utils.AppCheck</code></td>
+<td>Application detection (proxy/VPN) + cls_key parsing</td>
+</tr>
+<tr>
+<td><code>shell.utils.SignatureUtils</code></td>
+<td>Signature check (anti-repackaging)</td>
+</tr>
+<tr>
+<td><code>shell.utils.RefInvoke</code></td>
+<td>Reflection utility (swap the Application / modify fields)</td>
+</tr>
+<tr>
+<td><code>shell.utils.DigestUtils</code></td>
+<td>Digest / hash</td>
+</tr>
+<tr>
+<td><code>utils.base64.*</code></td>
+<td>Base64</td>
+</tr>
+</tbody>
+</table>
+<p>For the decompiled source, see <code>shell-contents/shell-classes-decompiled/</code>.</p>
+<hr />
+
+<nav class="prevnext"><a class="pn prev" href="02.html"><span>← Previous</span><b>02 PC Hardening Tool</b></a><a class="pn next" href="04.html"><span>Next →</span><b>04 Runtime Shell</b></a></nav>
+    </div>
+  </main>
+</div>
+<script>
+  var t=document.getElementById('navtoggle'),s=document.querySelector('.sidebar');
+  t&&t.addEventListener('click',function(){document.body.classList.toggle('nav-open');});
+</script>
+</body>
+</html>

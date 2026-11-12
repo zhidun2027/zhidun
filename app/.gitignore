@@ -1,0 +1,13 @@
+build/
+.gradle/
+runtime/config.dll
+runtime/tools/apktool.jar
+runtime/tools/apktool
+runtime/tools/zipalign
+runtime/tools/aapt2
+runtime/lib64/
+runtime/samples/*.apk
+runtime/source/
+runtime/target/
+runtime/result/
+*.keystore

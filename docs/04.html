@@ -1,0 +1,144 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Runtime Shell · zhidun 3.3.7 — Technical Manual</title>
+<link rel="stylesheet" href="assets/site.css">
+</head>
+<body>
+<button id="navtoggle" aria-label="Menu">☰ Menu</button>
+<div class="layout">
+  <aside class="sidebar">
+    <a class="brand" href="index.html">
+      <span class="logo">🛡️</span>
+      <span><b>zhidun 3.3.7</b><small>Reverse-engineering manual</small></span>
+    </a>
+    <nav class="nav">
+<a href="index.html"><span class="n">·</span><span class="t">Overview</span></a>
+<a href="01.html"><span class="n">01</span><span class="t">Background & Overview</span></a>
+<a href="02.html"><span class="n">02</span><span class="t">PC Hardening Tool</span></a>
+<a href="03.html"><span class="n">03</span><span class="t">config.dll Shell Resources</span></a>
+<a href="04.html" class="active"><span class="n">04</span><span class="t">Runtime Shell</span></a>
+<a href="05.html"><span class="n">05</span><span class="t">Cipher Specification</span></a>
+<a href="06.html"><span class="n">06</span><span class="t">Version Fingerprint</span></a>
+<a href="07.html"><span class="n">07</span><span class="t">Conclusions & Assessment</span></a>
+<a href="08.html"><span class="n">08</span><span class="t">Appendix</span></a>
+    </nav>
+    <div class="side-foot">CFR · dex2jar · Ghidra decompilation<br>every finding cites file:line</div>
+  </aside>
+  <main class="content">
+    <div class="inner">
+<h1>Part 4 · Runtime Shell (How the Hardened App Starts)</h1>
+<h2>4.1 StubApp Startup Flow (<code>smali/com/youyou/shell/StubApp.smali</code>)</h2>
+<ol>
+<li><code>attachBaseContext(Context)</code>: <code>super</code> → <code>AppLoad.time(this, currentTimeMillis)</code> (time check) → <code>AppLoad.load(classLoader, this)</code> (decrypt + load the original dex).</li>
+<li><code>onCreate()</code>: <code>AppLoad.create(classLoader, this)</code> (swap in the real Application via reflection) → <code>super.onCreate()</code>.</li>
+</ol>
+<h2>4.2 Native Engine <code>libjiaguo.so</code> (Ghidra decompilation; see <code>libjiaguo-decompiled-partial.c</code>)</h2>
+<p><strong>4.2.1 Identity</strong>: the original class is <code>com.hello.utils.FileUtils</code> (its JNI static exports <code>n001~n009</code>, and <code>decrypt</code>/<code>encrypt</code>, are empty stubs that <code>return 0</code>); inside <code>JNI_OnLoad</code>, <code>RegisterNatives</code> binds <code>create/init/load/test/time</code> to <code>com.youyou.AppLoad</code> — <strong>the library has been reused and renamed</strong>.</p>
+<p><strong>4.2.2 Native encryption/decryption</strong> <code>FUN_0010dbb8</code>: <strong>structurally identical</strong> to Java <code>com.utils.b</code> (<code>data[i]+=C1(5); ^=C2(3); ^=key[i%n]</code>, default key <code>&quot;2025-03-33&quot;</code>, with the constants initialized at runtime in .bss). Keys observed: <code>2025-03-33</code>, <code>com.marquee</code>+base, <code>2018-08-08com.marquee</code>.</p>
+<p><strong>4.2.3 dex injection</strong> (<code>n004</code>/<code>n007</code>): <code>RefInvoke</code> → <code>ActivityThread.currentActivityThread()</code> → <code>mPackages</code> → the target <code>LoadedApk</code> → create a new <code>PathClassLoader(/data/user/0/&lt;pkg&gt;/app_payload_odex/payload, lib/arm64)</code> → <code>setFieldObject(LoadedApk.mClassLoader)</code>.</p>
+<p><strong>4.2.4 Native method mapping &amp; backdoor</strong>: <code>AppLoad.load/create/init/test/time</code> ← RegisterNatives; ⚠ <code>n003</code> writes the decrypted dex to <code>/storage/emulated/0/data.dex</code>, and <code>n007([B)</code> can dump to an arbitrary path → <strong>the original dex can be recovered by unpacking</strong>.</p>
+<h2>4.3 Anti-Debugging &amp; Environment Detection (Detailed)</h2>
+<p><strong>Anti-debugging</strong> (three places; triggering any one exits the process)</p>
+<ul>
+<li>native <code>FUN_0010a80c</code>: reads <code>TracerPid</code> from <code>/proc/self/status</code>; nonzero → <code>_exit(1)</code>.</li>
+<li>native <code>FUN_0010a8d4</code> (a watchdog thread started by JNI_OnLoad): each second it calls <code>gettimeofday</code> to check for timing drift (breakpoints/single-stepping give it away); after 5 cumulative hits → <code>_exit(1)</code>.</li>
+<li>Java <code>SysCheck.check()</code>: <code>currentTimeMillis</code> drift, <code>l-l2-2000&gt;1000</code> → <code>System.exit(1)</code>.</li>
+</ul>
+<p><strong>Root</strong> (<code>SysCheck</code>)</p>
+<ul>
+<li><code>isRootSystem1()</code>: whether <code>su</code> exists in <code>/system/bin/</code>, <code>/system/xbin/</code>, <code>/system/sbin/</code>, or <code>/sbin/</code>.</li>
+<li><code>isRootSystem2()</code>: attempts to execute <code>su</code>.</li>
+</ul>
+<p><strong>Hook / Xposed / Substrate</strong> (<code>SysCheck</code>)</p>
+<ul>
+<li><code>findHookAppFile()</code>: scans the <code>/proc/</code> maps looking for <code>XposedBridge.jar</code> and <code>com.saurik.substrate</code>.</li>
+<li><code>findHookAppName()</code>: checks installed packages <code>de.robv.android.xposed.installer</code> and <code>com.saurik.substrate</code>.</li>
+<li><code>findHookStack()</code>: deliberately throws an exception and checks whether the stack contains <code>de.robv.android.xposed.XposedBridge</code> or <code>com.saurik.substrate.MS$2</code>.</li>
+</ul>
+<p><strong>Proxy</strong> (<code>SysCheck.checkHook</code> / <code>AppCheck</code>): <code>System.getProperty(&quot;http.proxyHost&quot;/&quot;http.proxyPort&quot;/…)</code>; <code>closeProxy</code> can forcibly clear the proxy.</p>
+<p><strong>VPN</strong> (<code>SysCheck.check06</code>): iterates over <code>NetworkInterface</code>; if <code>tun0</code> or <code>ppp0</code> appears → hit.</p>
+<p><strong>App cloning</strong> (<code>SysCheck.checkActivityThread</code>): whether the <code>getFilesDir()</code> path is <code>/data/user/0/&lt;pkg&gt;</code>, whether the parent directory <code>/..</code> is writable, plus iterating over running processes and comparing them — detecting virtual environments / clones.</p>
+<p><strong>Debug switches</strong> (<code>SysCheck</code>): <code>isUSBDebugSetting()</code> = <code>Settings.Secure.adb_enabled != 0</code>; <code>isOpenDevelopmentSetting()</code> = developer options.</p>
+<p><strong>Signature check</strong>: <code>SignatureUtils</code> + native <code>FUN_0010dfa4</code> → Java <code>check(String,byte[])</code> (key <code>app_k_y</code>), anti-repackaging.</p>
+<h2>4.4 Detection Item Reference Table</h2>
+<table>
+<thead>
+<tr>
+<th>Detection item</th>
+<th>Implementation</th>
+<th>Criterion</th>
+<th>Consequence on hit</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Debugger (ptrace)</td>
+<td>native FUN_0010a80c</td>
+<td><code>/proc/self/status</code> TracerPid≠0</td>
+<td><code>_exit(1)</code></td>
+</tr>
+<tr>
+<td>Debugger (timing)</td>
+<td>native FUN_0010a8d4 / SysCheck.check</td>
+<td>timing drift exceeds threshold</td>
+<td><code>_exit(1)</code>/<code>System.exit(1)</code></td>
+</tr>
+<tr>
+<td>Root</td>
+<td>SysCheck.isRootSystem1/2</td>
+<td><code>su</code> exists/executable</td>
+<td>report/exit</td>
+</tr>
+<tr>
+<td>Xposed/Substrate</td>
+<td>SysCheck.findHook*</td>
+<td>file/package-name/stack signatures</td>
+<td>report/exit</td>
+</tr>
+<tr>
+<td>HTTP proxy</td>
+<td>SysCheck.checkHook / AppCheck</td>
+<td>http.proxyHost non-empty</td>
+<td>can closeProxy</td>
+</tr>
+<tr>
+<td>VPN</td>
+<td>SysCheck.check06</td>
+<td>network interface tun0/ppp0</td>
+<td>report</td>
+</tr>
+<tr>
+<td>App cloning</td>
+<td>SysCheck.checkActivityThread</td>
+<td>abnormal /data/user/0 path</td>
+<td>report</td>
+</tr>
+<tr>
+<td>USB debugging</td>
+<td>SysCheck.isUSBDebugSetting</td>
+<td>adb_enabled≠0</td>
+<td>report</td>
+</tr>
+<tr>
+<td>Repackaging</td>
+<td>SignatureUtils / native check</td>
+<td>signature mismatch</td>
+<td>refuse to run</td>
+</tr>
+</tbody>
+</table>
+<hr />
+
+<nav class="prevnext"><a class="pn prev" href="03.html"><span>← Previous</span><b>03 config.dll Shell Resources</b></a><a class="pn next" href="05.html"><span>Next →</span><b>05 Cipher Specification</b></a></nav>
+    </div>
+  </main>
+</div>
+<script>
+  var t=document.getElementById('navtoggle'),s=document.querySelector('.sidebar');
+  t&&t.addEventListener('click',function(){document.body.classList.toggle('nav-open');});
+</script>
+</body>
+</html>

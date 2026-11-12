@@ -1,0 +1,76 @@
+plugins {
+    id 'java'
+    id 'application'
+}
+
+group = 'com.jiaguo'
+version = '3.3.7'
+
+// 原程序主类（exe4j MANIFEST: Main-Class: com.ShellMain）
+application {
+    mainClass = 'com.ShellMain'
+}
+
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(21)
+    }
+}
+
+repositories {
+    google()          // apksig 现代版本只在 Google Maven 仓库
+    mavenCentral()
+}
+
+dependencies {
+    // ---- FlatLaf 外观 + 扩展 + 字体（原工程这几块被反编译，统一换回官方依赖）----
+    implementation 'com.formdev:flatlaf:3.8'
+    implementation 'com.formdev:flatlaf-extras:3.8'
+    implementation 'com.formdev:flatlaf-fonts-inter:4.1'
+    implementation 'com.formdev:flatlaf-fonts-jetbrains-mono:2.304'
+    implementation 'com.formdev:flatlaf-fonts-roboto:2.137'
+    implementation 'com.formdev:flatlaf-fonts-roboto-mono:3.000'
+
+    // ---- apksig：反编译产物有大量 CFR 控制流/lambda 残缺，改用官方 jar ----
+    //      只保留 com/android/apksigner 下 6 个 CLI 包装类，编译依赖此 jar
+    implementation 'com.android.tools.build:apksig:8.7.3'
+
+    // ---- apksigner(ApkSignerTool) 启动时注册 conscrypt 的 OpenSSL provider ----
+    implementation 'org.conscrypt:conscrypt-openjdk-uber:2.5.2'
+
+    // ---- JLayer：原工程内嵌的是混淆版(javazoom.jl.player.g)，换回官方 jar ----
+    //      仅 com/frame/a 的启动音效用到，已改为 Player 官方 API
+    implementation 'javazoom:jlayer:1.0.1'
+}
+
+// 反编译源码含中文(\\uXXXX)且文件名有中文，统一 UTF-8；CFR 产物不规范，先压掉告警噪音
+tasks.withType(JavaCompile).configureEach {
+    options.encoding = 'UTF-8'
+    options.compilerArgs += ['-Xlint:none', '-nowarn']
+    options.failOnError = true
+}
+
+// Swing GUI：强制非 headless，继承 DISPLAY（Xvfb 下可真正起窗口）
+tasks.named('run') {
+    systemProperty 'java.awt.headless', 'false'
+    systemProperty 'file.encoding', 'UTF-8'
+}
+
+// 主 jar 写入 Main-Class，方便直接运行
+tasks.named('jar') {
+    manifest { attributes 'Main-Class': 'com.ShellMain' }
+}
+
+// fatJar：把全部依赖(FlatLaf/apksig/conscrypt/jlayer)打进单个可运行 jar
+//   运行： java -jar build/libs/apk-jiagu-3.3.7-all.jar
+tasks.register('fatJar', Jar) {
+    archiveClassifier = 'all'
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+    manifest { attributes 'Main-Class': 'com.ShellMain' }
+    from sourceSets.main.output
+    dependsOn configurations.runtimeClasspath
+    from {
+        configurations.runtimeClasspath.findAll { it.name.endsWith('jar') }.collect { zipTree(it) }
+    }
+    exclude 'META-INF/*.SF', 'META-INF/*.DSA', 'META-INF/*.RSA', 'module-info.class'
+}

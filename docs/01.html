@@ -1,0 +1,88 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Background & Overview · zhidun 3.3.7 — Technical Manual</title>
+<link rel="stylesheet" href="assets/site.css">
+</head>
+<body>
+<button id="navtoggle" aria-label="Menu">☰ Menu</button>
+<div class="layout">
+  <aside class="sidebar">
+    <a class="brand" href="index.html">
+      <span class="logo">🛡️</span>
+      <span><b>zhidun 3.3.7</b><small>Reverse-engineering manual</small></span>
+    </a>
+    <nav class="nav">
+<a href="index.html"><span class="n">·</span><span class="t">Overview</span></a>
+<a href="01.html" class="active"><span class="n">01</span><span class="t">Background & Overview</span></a>
+<a href="02.html"><span class="n">02</span><span class="t">PC Hardening Tool</span></a>
+<a href="03.html"><span class="n">03</span><span class="t">config.dll Shell Resources</span></a>
+<a href="04.html"><span class="n">04</span><span class="t">Runtime Shell</span></a>
+<a href="05.html"><span class="n">05</span><span class="t">Cipher Specification</span></a>
+<a href="06.html"><span class="n">06</span><span class="t">Version Fingerprint</span></a>
+<a href="07.html"><span class="n">07</span><span class="t">Conclusions & Assessment</span></a>
+<a href="08.html"><span class="n">08</span><span class="t">Appendix</span></a>
+    </nav>
+    <div class="side-foot">CFR · dex2jar · Ghidra decompilation<br>every finding cites file:line</div>
+  </aside>
+  <main class="content">
+    <div class="inner">
+<h1>Part 1 · Background &amp; Overview</h1>
+<table>
+<thead>
+<tr>
+<th>Layer</th>
+<th>Carrier</th>
+<th>Language</th>
+<th>Responsibility</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>① PC hardening tool</td>
+<td><code>original/apk-tool-3.3.7.jar</code></td>
+<td>Java/Swing</td>
+<td>Unpack, encrypt the original dex, generate cls_key, re-sign</td>
+</tr>
+<tr>
+<td>② Shell resource pack</td>
+<td><code>config.dll</code> (encrypted ZIP)</td>
+<td>Resources</td>
+<td>dex/native/manifest templates for installing the shell</td>
+</tr>
+<tr>
+<td>③ Runtime shell</td>
+<td><code>libjiaguo.so</code> + <code>init</code> dex</td>
+<td>native+Java</td>
+<td>Anti-debugging, decrypt and restore the dex, swap the Application via reflection</td>
+</tr>
+</tbody>
+</table>
+<p><strong>All three layers share the same custom stream cipher and the same set of date keys</strong> (see <a href="#part-5">Part 5</a> and <a href="#part-6">Part 6</a>).</p>
+<h2>1.4 Data-Flow Overview</h2>
+<pre><code>[Packaging · PC]
+ target APK --apktool--&gt; extract original dex
+   original dex --com.utils.b encrypt (random key)--&gt; hidden inside the shell
+   restore info (dexKey, etc.) --serialize + encrypt--&gt; assets/cls_key
+   shell (config.dll decrypted) + re-sign (apksig v1/2/3) --&gt; hardened APK
+
+[Runtime · phone]
+ system launches hardened APK --&gt; StubApp (shell Application) runs first
+   loadLibrary(&quot;jiaguo&quot;) --&gt; anti-debug / environment detection (exit on hit)
+   read assets/cls_key --decrypt--&gt; dexKey
+   decrypt and restore original dex --&gt; PathClassLoader injection
+   RefInvoke reflection --&gt; swap StubApp for the real Application --&gt; original app starts transparently
+</code></pre>
+
+<nav class="prevnext"><a class="pn prev" href="index.html"><span>← Previous</span><b>· Overview</b></a><a class="pn next" href="02.html"><span>Next →</span><b>02 PC Hardening Tool</b></a></nav>
+    </div>
+  </main>
+</div>
+<script>
+  var t=document.getElementById('navtoggle'),s=document.querySelector('.sidebar');
+  t&&t.addEventListener('click',function(){document.body.classList.toggle('nav-open');});
+</script>
+</body>
+</html>

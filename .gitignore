@@ -1,0 +1,37 @@
+# generated build artifact — reproduce with: python3 build-config-dll.py build
+config.dll
+app/runtime/config.dll
+
+# build outputs
+app/build/
+app/.gradle/
+*.class
+
+# keystores — never commit a signing key
+*.keystore
+*.jks
+
+# runtime binaries users supply themselves
+app/runtime/tools/apktool.jar
+app/runtime/tools/apktool
+app/runtime/tools/zipalign
+app/runtime/tools/aapt2
+app/runtime/lib64/
+app/runtime/samples/*.apk
+app/runtime/source/
+app/runtime/target/
+app/runtime/result/
+
+# raw decompiled source (third-party-heavy) — kept locally, not published
+decompiled-source/
+
+# original exe4j build + exe4j commercial runtime (exe4jlib.jar, i4jdel.exe) — not redistributed
+original/
+
+# full-length audio, likely copyrighted; the app runs fine without it
+app/src/main/resources/com/frame/audio/music.mp3
+
+# IDE
+.idea/
+*.iml
+.vscode/

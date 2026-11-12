@@ -1,0 +1,145 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Appendix · zhidun 3.3.7 — Technical Manual</title>
+<link rel="stylesheet" href="assets/site.css">
+</head>
+<body>
+<button id="navtoggle" aria-label="Menu">☰ Menu</button>
+<div class="layout">
+  <aside class="sidebar">
+    <a class="brand" href="index.html">
+      <span class="logo">🛡️</span>
+      <span><b>zhidun 3.3.7</b><small>Reverse-engineering manual</small></span>
+    </a>
+    <nav class="nav">
+<a href="index.html"><span class="n">·</span><span class="t">Overview</span></a>
+<a href="01.html"><span class="n">01</span><span class="t">Background & Overview</span></a>
+<a href="02.html"><span class="n">02</span><span class="t">PC Hardening Tool</span></a>
+<a href="03.html"><span class="n">03</span><span class="t">config.dll Shell Resources</span></a>
+<a href="04.html"><span class="n">04</span><span class="t">Runtime Shell</span></a>
+<a href="05.html"><span class="n">05</span><span class="t">Cipher Specification</span></a>
+<a href="06.html"><span class="n">06</span><span class="t">Version Fingerprint</span></a>
+<a href="07.html"><span class="n">07</span><span class="t">Conclusions & Assessment</span></a>
+<a href="08.html" class="active"><span class="n">08</span><span class="t">Appendix</span></a>
+    </nav>
+    <div class="side-foot">CFR · dex2jar · Ghidra decompilation<br>every finding cites file:line</div>
+  </aside>
+  <main class="content">
+    <div class="inner">
+<h1>Appendix</h1>
+<h2>A. Source Directory File List (``)</h2>
+<table>
+<thead>
+<tr>
+<th>File / Directory</th>
+<th>Contents</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>technical-manual.md</code></td>
+<td><strong>This file</strong> (master index)</td>
+</tr>
+<tr>
+<td><code>site/index.html</code></td>
+<td>Technical-principles web page (dual theme, hostable)</td>
+</tr>
+<tr>
+<td><code>shell-internals.md</code></td>
+<td>Early text-version summary</td>
+</tr>
+<tr>
+<td><code>original/apk-tool-3.3.7.jar</code></td>
+<td>Main program jar (address-modified version)</td>
+</tr>
+<tr>
+<td><code>original/extracted/</code></td>
+<td>Main program .class files + resources</td>
+</tr>
+<tr>
+<td><code>decompiled-source/</code></td>
+<td>The .java for the entire main-program jar (CFR, 1127+ classes)</td>
+</tr>
+<tr>
+<td><code>exe4jlib.jar</code> / <code>i4jdel.exe</code></td>
+<td>The other two files embedded in the exe</td>
+</tr>
+<tr>
+<td><code>config.dll.decrypted.zip</code></td>
+<td>The decrypted ZIP of config.dll (shell resources)</td>
+</tr>
+<tr>
+<td><code>shell-contents/</code></td>
+<td>Extracted shell payload: manifest/init/libjiaguo×4/smali/shell-class java</td>
+</tr>
+<tr>
+<td><code>libjiaguo-decompiled-partial.c</code></td>
+<td>Ghidra-decompiled C of the native engine (24 functions)</td>
+</tr>
+</tbody>
+</table>
+<h2>B. Master Table of Keys / Constants</h2>
+<p>See the <a href="#part-5">Part 5 key list</a> + the <a href="#part-6">Part 6 fingerprint table</a>. Constants: <code>d=3</code>, <code>e=5</code>, validity <code>540</code> days, XOR obfuscation <code>0x88</code> (exe embedded region).</p>
+<h2>C. Key Class / Function Index</h2>
+<ul>
+<li><strong>PC (Java)</strong>: <code>com.ShellMain</code>, <code>com.frame.a</code>, <code>com.frame.SignShellUtils</code> (hardening core), <code>com.frame.r</code> (author &quot;About&quot; redirect), <code>com.utils.b</code> (encryption/decryption), <code>com.utils.{c,e,i,j}</code>, <code>com.utils.FileUtils</code>, <code>ConfigPacker</code> (config.dll packer).</li>
+<li><strong>Shell (Java)</strong>: <code>com.youyou.shell.StubApp</code>, <code>com.youyou.AppLoad</code>, <code>com.youyou.shell.utils.{SysCheck,AppCheck,SignatureUtils,RefInvoke,DigestUtils}</code>.</li>
+<li><strong>native</strong>: <code>JNI_OnLoad</code>, <code>FUN_0010dbb8</code> (cipher), <code>FUN_0010a80c</code> (TracerPid), <code>FUN_0010a8d4</code> (watchdog), <code>FUN_0010dfa4</code> (signature check), <code>n001~n009</code> (the FileUtils series).</li>
+</ul>
+<h2>D. Glossary</h2>
+<table>
+<thead>
+<tr>
+<th>Term</th>
+<th>Meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Hardening / packing</td>
+<td>A protection technique that encrypts and hides the original APK code and restores it at runtime</td>
+</tr>
+<tr>
+<td>Extraction-style hardening</td>
+<td>Extracts the entire original dex and encrypts it, then decrypts and loads it at runtime</td>
+</tr>
+<tr>
+<td>StubApp</td>
+<td>The shell's stand-in Application; runs first and is responsible for decrypting and restoring, then swapping back to the real App</td>
+</tr>
+<tr>
+<td>cls_key</td>
+<td>The encrypted key table stored in assets</td>
+</tr>
+<tr>
+<td>RegisterNatives</td>
+<td>JNI dynamic binding of Java native methods to C functions</td>
+</tr>
+<tr>
+<td>TracerPid</td>
+<td>The debugger PID in /proc/self/status, used for anti-debugging</td>
+</tr>
+</tbody>
+</table>
+<h2>E. Reproduction Steps (How These Were Derived)</h2>
+<ol>
+<li><strong>jar embedded in the exe</strong>: locate the <code>[len8][XOR0x88 data]</code> chain (3 blocks); block 3 XOR 0x88 = <code>original/apk-tool-3.3.7.jar</code>.</li>
+<li><strong>jar → java</strong>: <code>java -jar cfr.jar &lt;jar&gt; --outputdir decompiled-source</code> (the Chinese default-package classes in the root directory must be decompiled separately).</li>
+<li><strong>config.dll → zip</strong>: <code>b(&quot;2025_09&quot;, config.dll)</code> (byte by byte <code>+5 ^3 ^key</code>) → a valid ZIP.</li>
+<li><strong>init dex → java</strong>: <code>dex2jar init</code> → <code>cfr</code> decompilation.</li>
+<li><strong>libjiaguo.so → C</strong>: Ghidra <code>analyzeHeadless</code> import + a decompilation script to export the C.</li>
+</ol>
+
+<nav class="prevnext"><a class="pn prev" href="07.html"><span>← Previous</span><b>07 Conclusions & Assessment</b></a><span></span></nav>
+    </div>
+  </main>
+</div>
+<script>
+  var t=document.getElementById('navtoggle'),s=document.querySelector('.sidebar');
+  t&&t.addEventListener('click',function(){document.body.classList.toggle('nav-open');});
+</script>
+</body>
+</html>

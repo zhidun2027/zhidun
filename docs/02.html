@@ -1,0 +1,116 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>PC Hardening Tool · zhidun 3.3.7 — Technical Manual</title>
+<link rel="stylesheet" href="assets/site.css">
+</head>
+<body>
+<button id="navtoggle" aria-label="Menu">☰ Menu</button>
+<div class="layout">
+  <aside class="sidebar">
+    <a class="brand" href="index.html">
+      <span class="logo">🛡️</span>
+      <span><b>zhidun 3.3.7</b><small>Reverse-engineering manual</small></span>
+    </a>
+    <nav class="nav">
+<a href="index.html"><span class="n">·</span><span class="t">Overview</span></a>
+<a href="01.html"><span class="n">01</span><span class="t">Background & Overview</span></a>
+<a href="02.html" class="active"><span class="n">02</span><span class="t">PC Hardening Tool</span></a>
+<a href="03.html"><span class="n">03</span><span class="t">config.dll Shell Resources</span></a>
+<a href="04.html"><span class="n">04</span><span class="t">Runtime Shell</span></a>
+<a href="05.html"><span class="n">05</span><span class="t">Cipher Specification</span></a>
+<a href="06.html"><span class="n">06</span><span class="t">Version Fingerprint</span></a>
+<a href="07.html"><span class="n">07</span><span class="t">Conclusions & Assessment</span></a>
+<a href="08.html"><span class="n">08</span><span class="t">Appendix</span></a>
+    </nav>
+    <div class="side-foot">CFR · dex2jar · Ghidra decompilation<br>every finding cites file:line</div>
+  </aside>
+  <main class="content">
+    <div class="inner">
+<h1>Part 2 · PC-Side Hardening Tool (Java)</h1>
+<h2>2.1 Program Form</h2>
+<ul>
+<li><strong>exe4j wrapper</strong>: at the tail of the exe, 3 files are stored in sequence as <code>[8-byte length (plaintext)] + [data (whole thing XOR 0x88)]</code>: <code>exe4jlib.jar</code>, <code>i4jdel.exe</code>, <code>original/apk-tool-3.3.7.jar</code>. The embedded region begins at 0xaa2d4 after the PE body, with a 28-byte magic <code>e8 e4 13 d5</code> at the end.</li>
+<li><strong>Entry point</strong>: <code>com.ShellMain</code> → main window <code>com.frame.a</code>.</li>
+<li><strong>Version number</strong>: <code>com/frame/a.java:75</code> → <code>static String a = &quot;3.3.7&quot;</code>.</li>
+<li><strong>External dependencies</strong>: <code>tools/apktool.jar</code>, <code>tools/zipalign.exe</code>; plus the built-in Google <code>com/android/apksig/*</code> signing library.</li>
+</ul>
+<h2>2.2 Complete Hardening Flow (<code>com/frame/SignShellUtils.java</code>)</h2>
+<ol>
+<li><strong>Unpack</strong>: <code>apktool</code> decompiles the target APK into <code>source/</code>.</li>
+<li><strong>Encrypt the original dex</strong>: the key is randomized each time as <code>&quot;z&quot;+System.currentTimeMillis()+&quot;z&quot;</code>, concatenated with the version number; after encryption with <code>com.utils.b</code> it is stored as a resource inside the shell (<code>:403 / :409</code>).</li>
+<li><strong>Generate the key table</strong>: the restore information is placed into a HashMap → serialized + encrypted → written to <code>assets/cls_key</code> (<code>:499–514</code>).</li>
+<li><strong>Inject the shell</strong>: the shell loader / native code comes from <code>config.dll</code>, where <code>lib</code> is decrypted with the key <code>&quot;2025_09&quot;</code> (<code>:698–700</code>).</li>
+<li><strong>Alignment</strong>: <code>zipalign</code> performs 4-byte alignment.</li>
+<li><strong>Re-signing</strong>: <code>apksig</code> v1/v2/v3 all enabled, v4 disabled (<code>:621–632</code>).</li>
+</ol>
+<h2>2.3 The <code>assets/cls_key</code> Key Table</h2>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>dexKey</code></td>
+<td>Decryption key for the original dex (random string + version number)</td>
+</tr>
+<tr>
+<td><code>init_pass</code></td>
+<td>Initialization password</td>
+</tr>
+<tr>
+<td><code>signa</code></td>
+<td>Signature check value (<code>com.utils.b.d()</code>, pure XOR)</td>
+</tr>
+<tr>
+<td><code>init_md5</code> / <code>playMd5</code></td>
+<td>MD5 integrity check</td>
+</tr>
+<tr>
+<td><code>version</code></td>
+<td>= <code>com.frame.a.a</code> = 3.3.7</td>
+</tr>
+<tr>
+<td><code>sysTime</code> / <code>time</code></td>
+<td>Packaging timestamp</td>
+</tr>
+<tr>
+<td><code>setting</code></td>
+<td>Protection toggle configuration</td>
+</tr>
+<tr>
+<td><code>pckName</code></td>
+<td>Package name</td>
+</tr>
+</tbody>
+</table>
+<p>Written to <code>…\assets\cls_key</code>; the whole thing is then encrypted with another layer using the base key <code>&quot;2025-03-33&quot;</code> (<code>:513–514</code>).</p>
+<h2>2.4 Trial / Validity Mechanism ★</h2>
+<p><strong>No usage count, no machine code, no network check. The only restriction</strong>: the <code>config.dll</code> file's <strong>creation time + 540 days</strong>.</p>
+<pre><code class="language-java">// SignShellUtils.java:298–305
+l2 = FileUtils.b(config.dll);              // = BasicFileAttributes.creationTime() (FileUtils.java:110-114)
+l3 = System.currentTimeMillis() - l2;
+if (l3/1000/60/60/24 &gt; 540) {              // over 540 days
+    popup(&quot;config.dll configuration file has expired; please re-download&quot;); return null;
+}
+</code></pre>
+<p>Swapping in a fresh config.dll (whose creation time is reset) renews it.</p>
+<h2>2.5 Custom Encryption <code>com/utils/b.java</code></h2>
+<p>See <a href="#part-5">Part 5</a>.</p>
+<hr />
+
+<nav class="prevnext"><a class="pn prev" href="01.html"><span>← Previous</span><b>01 Background & Overview</b></a><a class="pn next" href="03.html"><span>Next →</span><b>03 config.dll Shell Resources</b></a></nav>
+    </div>
+  </main>
+</div>
+<script>
+  var t=document.getElementById('navtoggle'),s=document.querySelector('.sidebar');
+  t&&t.addEventListener('click',function(){document.body.classList.toggle('nav-open');});
+</script>
+</body>
+</html>

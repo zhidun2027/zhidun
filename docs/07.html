@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Conclusions & Assessment · zhidun 3.3.7 — Technical Manual</title>
+<link rel="stylesheet" href="assets/site.css">
+</head>
+<body>
+<button id="navtoggle" aria-label="Menu">☰ Menu</button>
+<div class="layout">
+  <aside class="sidebar">
+    <a class="brand" href="index.html">
+      <span class="logo">🛡️</span>
+      <span><b>zhidun 3.3.7</b><small>Reverse-engineering manual</small></span>
+    </a>
+    <nav class="nav">
+<a href="index.html"><span class="n">·</span><span class="t">Overview</span></a>
+<a href="01.html"><span class="n">01</span><span class="t">Background & Overview</span></a>
+<a href="02.html"><span class="n">02</span><span class="t">PC Hardening Tool</span></a>
+<a href="03.html"><span class="n">03</span><span class="t">config.dll Shell Resources</span></a>
+<a href="04.html"><span class="n">04</span><span class="t">Runtime Shell</span></a>
+<a href="05.html"><span class="n">05</span><span class="t">Cipher Specification</span></a>
+<a href="06.html"><span class="n">06</span><span class="t">Version Fingerprint</span></a>
+<a href="07.html" class="active"><span class="n">07</span><span class="t">Conclusions & Assessment</span></a>
+<a href="08.html"><span class="n">08</span><span class="t">Appendix</span></a>
+    </nav>
+    <div class="side-foot">CFR · dex2jar · Ghidra decompilation<br>every finding cites file:line</div>
+  </aside>
+  <main class="content">
+    <div class="inner">
+<h1>Part 7 · Conclusions &amp; Security Assessment</h1>
+<h2>7.1 Strengths</h2>
+<ul>
+<li>Three-layer separation (PC / config.dll / native), with the critical logic pushed down into native code.</li>
+<li>Fairly comprehensive anti-debugging / environment detection (ptrace + timing drift + root/hook/proxy/VPN/app cloning/adb).</li>
+<li>dex-extraction-style hardening + runtime ClassLoader replacement, so the original code is not directly visible statically.</li>
+</ul>
+<h2>7.2 Weaknesses / Weak Points</h2>
+<ul>
+<li><strong>The encryption is a custom weak stream cipher</strong> (<code>^key ^3 ±5</code>), not AES; the keys are hardcoded in the code and can be recovered directly.</li>
+<li><strong>Authorization is extremely light</strong>: only the 540-day file validity of config.dll, with no network check / machine code / usage count — out of step with any proper licensing system.</li>
+<li>The native library is an <strong>off-the-shelf component that was reused and renamed</strong> (original identity <code>com.hello</code>), not fully in-house.</li>
+</ul>
+<h2>7.3 Feasibility of Unpacking</h2>
+<ul>
+<li>The runtime shell writes the <strong>decrypted original dex</strong> to <code>/storage/emulated/0/data.dex</code> (the <code>n003</code> backdoor) or injects it into <code>app_payload_odex/payload</code>; once triggered, the original dex can be retrieved directly.</li>
+<li>Anti-debugging is only ptrace + timing, so ordinary anti-anti-debugging is enough to bypass it and then dump dynamically.</li>
+</ul>
+<hr />
+
+<nav class="prevnext"><a class="pn prev" href="06.html"><span>← Previous</span><b>06 Version Fingerprint</b></a><a class="pn next" href="08.html"><span>Next →</span><b>08 Appendix</b></a></nav>
+    </div>
+  </main>
+</div>
+<script>
+  var t=document.getElementById('navtoggle'),s=document.querySelector('.sidebar');
+  t&&t.addEventListener('click',function(){document.body.classList.toggle('nav-open');});
+</script>
+</body>
+</html>

@@ -1,0 +1,58 @@
+========================================
+APK Security Tool ver:3.3.7  —— Unpacking + Decompilation Contents Overview
+========================================
+★★ Main document = technical-manual.md (structured technical manual with all background/architecture/breakdown/keys/
+   detection checklist/version fingerprints/reproduction steps; 7 main parts + 5 appendices, ideal to develop directly into docs) ★★
+   Web preview (single page) = site/index.html (dual-theme, 11 sections, hostable)
+   ★ Multi-page site skeleton = docs/ (one page per part + shared side navigation + an overridable
+     assets/site.css, index.html as the entry; open directly in a browser or drop it on a server to apply the template)
+========================================
+Source: APK-tool.exe (a Java program packaged with exe4j)
+This copy is uniformly the 【address-changed version】: the "About the Author" link in the program = https://t.me/java2019
+(the original kanxue link no longer exists in any file in this directory)
+
+【Directory Contents】
+1. original/apk-tool-3.3.7.jar          Main program jar (address-changed version)
+2. exe4jlib.jar / i4jdel.exe     The other two items embedded in the exe (as-is)
+3. original/extracted/        Full extraction of the main program jar (.class bytecode + resources)
+4. decompiled-source/                   ★ The .java source decompiled from the entire jar (CFR 0.152);
+                                 1127+ classes: the app's own com/frame, com/utils,
+                                 bin, test, com/ShellMain, ConfigPacker, plus third-party libraries
+5. shell-internals.md  ★ Technical analysis document (text version)
+6. site/index.html                 ★ Technical-principles web page (directly hostable, dual-theme responsive)
+7. config.dll.decrypted.zip           ★ The shell resource pack recovered by decrypting config.dll (valid ZIP, 1065 entries)
+8. shell-contents/            ★ Extracted shell payload: AndroidManifest.xml (com.shell),
+                                 init (shell loader dex), lib/*/libjiaguo.so (native hardening engine ×4 ABIs),
+                                 smali_com_youyou/ (the shell's own code StubApp/AppLoad/AppCheck…)
+
+【How config.dll Was Decrypted】
+Using the in-house decryptor b(): byte by byte x+=5; x^=3; x^=key, key "2025_09" → yields a valid ZIP.
+Shell entry com.youyou.shell.StubApp; at runtime loadLibrary("jiaguo") → reads assets/cls_key
+to derive dexKey → restores the original dex → RefInvoke reflection swaps back the real Application.
+
+9. libjiaguo-decompiled-partial.c            ★ Ghidra decompilation of the native hardening engine libjiaguo.so (24 functions)
+
+【libjiaguo.so Native-Layer Highlights】(see site/index.html section 06)
+· native cipher FUN_0010dbb8 = same as Java com.utils.b (+5 ^3 ^key, default key 2025-03-33)
+· anti-debugging: FUN_0010a80c reads TracerPid from /proc/self/status (nonzero → _exit) +
+  watchdog thread FUN_0010a8d4 time-drift detection; integrity check(app_k_y)
+· dex injection: RefInvoke→ActivityThread.mPackages→changes LoadedApk.mClassLoader to
+  a PathClassLoader containing the payload (decrypted original dex)
+· debug interface: n003 writes the decrypted dex to /storage/emulated/0/data.dex (can be unpacked to recover the original dex)
+· original class com.hello.utils.FileUtils; JNI_OnLoad RegisterNatives binds to com.youyou.AppLoad
+
+【What shell-internals.md Covers】
+· Hardening principles and the full workflow (extract dex → in-house encryption → insert assets/cls_key → re-signing)
+· The in-house encryption algorithm (com.utils.b stream cipher: ^key ^3 -5)
+· What config.dll is (a resource pack the author's packer ConfigPacker.java encrypts with the key "2025_09")
+· ★Trial/counting/validity: no usage count, no machine code, no network; only the config.dll
+  "creation time + 540 days" time bomb (SignShellUtils.java:298-305)
+· ★Version fingerprint: date keys 2025_09 / 2026-08 / 2023_09, version number 3.3.7,
+  the author's build path — used to compare and determine which version it is
+
+【Notes】
+· .class is compiled bytecode; .java is decompiled by CFR (method/variable names are obfuscated to a, b, r, etc.,
+  but string constants, call relationships, and keys are all present and readable).
+· The Chinese in decompiled-source is \uXXXX-escaped (that is how CFR outputs it); editors display it normally.
+· The original APK-tool.exe has been overwritten by the "address-changed version"; if you want an exe that "opens the original kanxue link",
+  just reverse the change on the jar in this directory (or ask me).
