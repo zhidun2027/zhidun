@@ -229,7 +229,8 @@ footer{border-top:1px solid var(--line); padding:38px 0 46px; color:var(--fg-dim
       <h1 data-i18n-html="heroH1">Wrap your Android app<br>in a <span class="hl">shell</span>.</h1>
       <p class="hero-lead" data-i18n="heroLead">Your original DEX is encrypted and hidden in assets, then restored at runtime by a StubApp and a native engine. Reverse engineers get a shell, not your code. One command runs decompile, encrypt, inject, align, and re-sign.</p>
       <div class="hero-cta">
-        <a class="btn primary focusable" href="#start" data-i18n="heroCta1">Get started →</a>
+        <a class="btn primary focusable" href="https://github.com/zhidun2027/zhidun/releases/latest" target="_blank" rel="noopener" data-i18n="heroCtaDl">Download ↓</a>
+        <a class="btn focusable" href="#start" data-i18n="heroCta1">Get started →</a>
         <a class="btn focusable" href="#verify" data-i18n="heroCta2">See the proof</a>
       </div>
       <div class="hero-meta">
@@ -402,6 +403,10 @@ footer{border-top:1px solid var(--line); padding:38px 0 46px; color:var(--fg-dim
       <h2 data-i18n="qsTitle">Quick start</h2>
       <p class="sec-sub" data-i18n="qsSub">A Gradle project on JDK 21. Launch the GUI to pick an APK and keystore and hit start, or drive it from the command line.</p>
     </div>
+    <p class="note" style="margin:-6px 0 20px">
+      <span class="b">↓</span>
+      <span data-i18n-html="qsDl">Prefer a prebuilt binary? Grab <a href="https://github.com/zhidun2027/zhidun/releases/latest" target="_blank" rel="noopener" style="color:var(--cyan)">zhidun.exe or the cross-platform jar</a> from the latest release — needs Java 21.</span>
+    </p>
     <div class="qs">
       <div class="term">
         <div class="copybar"><span class="t" data-i18n="qs1t">Launch the GUI</span>
@@ -457,7 +462,7 @@ footer{border-top:1px solid var(--line); padding:38px 0 46px; color:var(--fg-dim
     heroEyebrow:"Android アプリ保護 · APK シールディング",
     heroH1:'あなたの Android アプリに<br>守りの<span class="hl">シェル</span>を。',
     heroLead:"元の DEX を暗号化して assets に隠し、実行時に StubApp とネイティブエンジンが復元します。解析者が手にするのはシェルだけで、あなたのコードではありません。逆コンパイル・暗号化・注入・アライン・再署名を 1 コマンドで。",
-    heroCta1:"はじめる →", heroCta2:"実証を見る",
+    heroCtaDl:"ダウンロード ↓", heroCta1:"はじめる →", heroCta2:"実証を見る",
     heroM1:"エンドツーエンド実証済み", heroM2:"v1 / v2 / v3 署名", heroM3:"4 ABI ネイティブエンジン",
     heroTerm:
 '<span class="ln"><span class="c-prompt">zhidun@3.3.7</span><span class="c-dim">:~$</span> <span class="c-cmd">protect</span> <span class="c-flag">./app.apk</span> <span class="c-flag">--keystore</span> <span class="c-str">release.jks</span></span>'+
@@ -508,6 +513,7 @@ footer{border-top:1px solid var(--line); padding:38px 0 46px; color:var(--fg-dim
     verNote:"これは実機でシェル(StubApp + libjiaguo.so)が実行時に行うことそのものです。保護チェーンの完全性、鍵体系の正しさ、元アプリの復元可能性を実証します。",
     qsTitle:"クイックスタート",
     qsSub:"JDK 21 の Gradle プロジェクト。GUI で APK と keystore を選んで開始、またはコマンドラインで自動化できます。",
+    qsDl:'ビルド済みが良ければ、<a href="https://github.com/zhidun2027/zhidun/releases/latest" target="_blank" rel="noopener" style="color:var(--cyan)">zhidun.exe またはクロスプラットフォーム jar</a> を最新リリースから入手できます（Java 21 が必要）。',
     qs1t:"GUI を起動", copyBtn:"コピー", copyBtn2:"コピー",
     qsTerm1:
 '<span class="ln"><span class="c-prompt">$</span> <span class="c-cmd">./gradlew</span> <span class="c-flag">run</span></span>'+

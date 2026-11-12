@@ -11,8 +11,9 @@ English&nbsp;|&nbsp;[日本語](README.ja.md)
 ![jdk](https://img.shields.io/badge/JDK-21-blue)
 ![signing](https://img.shields.io/badge/signing-v1%20%7C%20v2%20%7C%20v3-39d98a)
 ![stars](https://img.shields.io/github/stars/zhidun2027/zhidun?style=flat)
+[![download](https://img.shields.io/github/v/release/zhidun2027/zhidun?label=download&color=39d98a)](https://github.com/zhidun2027/zhidun/releases/latest)
 
-[Website](https://zhidun2027.github.io/zhidun/) · [Quick Start](#quick-start) · [How it works](#how-it-works) · [Verified](#verified)
+[Download](https://github.com/zhidun2027/zhidun/releases/latest) · [Website](https://zhidun2027.github.io/zhidun/) · [Quick Start](#quick-start) · [How it works](#how-it-works) · [Verified](#verified)
 
 </div>
 
@@ -70,6 +71,17 @@ recovered dex  776 B   md5 7943a0e0964c227d5351bd4a7eccfd1b
 The full pipeline (decompile → encrypt → inject → rewrite → repack → align → sign) has been run end-to-end on a real APK, and the output passes `apksigner verify` on **v1 / v2 / v3**.
 
 ## Quick Start
+
+### Prebuilt downloads
+
+Grab the [latest release](https://github.com/zhidun2027/zhidun/releases/latest). Both need **Java 21** ([Temurin](https://adoptium.net/temurin/releases/?version=21)) installed:
+
+- **Windows** — `zhidun.exe`, double-click to run.
+- **Any OS** — `zhidun-3.3.7-all.jar`, run `java -jar zhidun-3.3.7-all.jar`.
+
+> `zhidun.exe` is an unsigned [Launch4j](https://launch4j.sourceforge.net/) wrapper around the jar, so some antivirus engines may show a false positive — the jar is the same code.
+
+### Build from source
 
 A Gradle project on **JDK 21**.
 

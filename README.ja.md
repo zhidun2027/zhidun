@@ -11,8 +11,9 @@
 ![jdk](https://img.shields.io/badge/JDK-21-blue)
 ![signing](https://img.shields.io/badge/signing-v1%20%7C%20v2%20%7C%20v3-39d98a)
 ![stars](https://img.shields.io/github/stars/zhidun2027/zhidun?style=flat)
+[![download](https://img.shields.io/github/v/release/zhidun2027/zhidun?label=download&color=39d98a)](https://github.com/zhidun2027/zhidun/releases/latest)
 
-[Webサイト](https://zhidun2027.github.io/zhidun/) · [クイックスタート](#クイックスタート) · [仕組み](#仕組み) · [実証](#実証)
+[ダウンロード](https://github.com/zhidun2027/zhidun/releases/latest) · [Webサイト](https://zhidun2027.github.io/zhidun/) · [クイックスタート](#クイックスタート) · [仕組み](#仕組み) · [実証](#実証)
 
 </div>
 
@@ -70,6 +71,17 @@ flowchart LR
 パイプライン全体（逆コンパイル → 暗号化 → 注入 → 書き換え → 再パック → アライン → 署名）は実際の APK でエンドツーエンドに実行済みで、出力は `apksigner verify` の **v1 / v2 / v3** を通過します。
 
 ## クイックスタート
+
+### ビルド済みダウンロード
+
+[最新リリース](https://github.com/zhidun2027/zhidun/releases/latest)から入手できます。どちらも **Java 21**（[Temurin](https://adoptium.net/temurin/releases/?version=21)）が必要です：
+
+- **Windows** — `zhidun.exe`、ダブルクリックで起動。
+- **全 OS** — `zhidun-3.3.7-all.jar`、`java -jar zhidun-3.3.7-all.jar` で実行。
+
+> `zhidun.exe` は未署名の [Launch4j](https://launch4j.sourceforge.net/) ラッパー（jar を内包）なので、一部のアンチウイルスが誤検知を表示する場合があります——中身は jar と同じコードです。
+
+### ソースからビルド
 
 **JDK 21** の Gradle プロジェクトです。
 
