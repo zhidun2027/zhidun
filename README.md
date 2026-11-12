@@ -74,12 +74,13 @@ The full pipeline (decompile → encrypt → inject → rewrite → repack → a
 
 ### Prebuilt downloads
 
-Grab the [latest release](https://github.com/zhidun2027/zhidun/releases/latest). Both need **Java 21** ([Temurin](https://adoptium.net/temurin/releases/?version=21)) installed:
+Grab the [latest release](https://github.com/zhidun2027/zhidun/releases/latest). All options need **Java 21** ([Temurin](https://adoptium.net/temurin/releases/?version=21)) installed:
 
-- **Windows** — `zhidun.exe`, double-click to run.
+- **Windows, simplest** — put `zhidun.bat` next to `zhidun-3.3.7-all.jar` and double-click the `.bat`. Plain launcher script, no antivirus false positives.
+- **Windows, one file** — `zhidun.exe`, double-click.
 - **Any OS** — `zhidun-3.3.7-all.jar`, run `java -jar zhidun-3.3.7-all.jar`.
 
-> `zhidun.exe` is an unsigned [Launch4j](https://launch4j.sourceforge.net/) wrapper around the jar, so some antivirus engines may show a false positive — the jar is the same code.
+> `zhidun.exe` is an unsigned [Launch4j](https://launch4j.sourceforge.net/) wrapper, so some antivirus engines may show a false positive — use `zhidun.bat` + the jar instead; it's the same code.
 
 ### Build from source
 

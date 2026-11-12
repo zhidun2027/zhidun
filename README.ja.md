@@ -74,12 +74,13 @@ flowchart LR
 
 ### ビルド済みダウンロード
 
-[最新リリース](https://github.com/zhidun2027/zhidun/releases/latest)から入手できます。どちらも **Java 21**（[Temurin](https://adoptium.net/temurin/releases/?version=21)）が必要です：
+[最新リリース](https://github.com/zhidun2027/zhidun/releases/latest)から入手できます。いずれも **Java 21**（[Temurin](https://adoptium.net/temurin/releases/?version=21)）が必要です：
 
-- **Windows** — `zhidun.exe`、ダブルクリックで起動。
+- **Windows・最も簡単** — `zhidun.bat` を `zhidun-3.3.7-all.jar` と同じフォルダに置き、`.bat` をダブルクリック。ただのランチャースクリプトなので誤検知なし。
+- **Windows・1 ファイル** — `zhidun.exe`、ダブルクリックで起動。
 - **全 OS** — `zhidun-3.3.7-all.jar`、`java -jar zhidun-3.3.7-all.jar` で実行。
 
-> `zhidun.exe` は未署名の [Launch4j](https://launch4j.sourceforge.net/) ラッパー（jar を内包）なので、一部のアンチウイルスが誤検知を表示する場合があります——中身は jar と同じコードです。
+> `zhidun.exe` は未署名の [Launch4j](https://launch4j.sourceforge.net/) ラッパーなので、一部のアンチウイルスが誤検知を表示する場合があります——気になる場合は `zhidun.bat` + jar をどうぞ(中身は同じコードです)。
 
 ### ソースからビルド
 
